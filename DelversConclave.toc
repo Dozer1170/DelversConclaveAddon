@@ -4,5 +4,7 @@
 ## Notes: Audits your raid members to make sure they have full gems/enchants/raid buffs
 ## SavedVariables: SVDC
 
-AuraUtil.lua
+AuraUtils.lua
+DebugUtils.lua
+InventoryUtil.lua
 DelversConclave.lua

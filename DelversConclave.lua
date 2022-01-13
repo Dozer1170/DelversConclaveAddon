@@ -49,28 +49,18 @@ end
 ----------------------------- Slash Commands -------------------------------------
 
 SLASH_DC1 = "/dc"
-SlashCmdList["dc"] = function(msg)
-    local split = msg.split(' ')
-    if split.length <= 1 then
-        print("Delvers Conclave: Provide a subcommand (heroiccheck, attendance)")
-    end
-
-    local subcommand = split[1]
-    if subcommand == "heroiccheck" then
+SlashCmdList["DC"] = function(msg)
+    if msg == "heroiccheck" then
         NotifyInspect("target")
         DC.inspectUnit = GetUnitName("target")
-    end
-
-    if subcommand == "attendance" then
+    elseif msg == "attendance" then
         DC.doAttendanceRecording()
-    end
-
-    if subcommand == "printattendance" then
+    elseif msg == "printattendance" then
         DC.printAttendance()
-    end
-
-    if subcommand == "printspellcasts" then
+    elseif msg == "printspellcasts" then
         DC.printSpellCastCount()
+    else
+        print("Provide an argument /dc heroiccheck|attendance|printattendance|printspellcasts")
     end
 end
 
@@ -79,9 +69,9 @@ end
 function DC.doHeroicPlayerCheckOnUnit(unit)
     local name = GetUnitName(unit, false)
 
-    local hasVeiledAugment = AuraUtil.AuraExists("Veiled Augment Rune", unit, nil)
-    local hasFlask = AuraUtil.AuraExists("Spectral Flask of Power", unit, nil)
-    local hasFood = AuraUtil.AuraExists("Well Fed", unit, nil)
+    local hasVeiledAugment = AuraUtils.AuraExists("Veiled Augment Rune", unit, "PLAYER|HELPFUL")
+    local hasFlask = AuraUtils.AuraExists("Spectral Flask of Power", unit, "PLAYER|HELPFUL")
+    local hasFood = AuraUtils.AuraExists("Well Fed", unit, "PLAYER|HELPFUL")
 
     --local mainHandEnhanced = InventoryUtil.ItemHasEnhancement(unit, "MainHandSlot")
     local minILvlForHeroic = 226
@@ -97,7 +87,7 @@ end
 
 function DC.doAttendanceRecording()
     for i = 1, 40 do
-        name, ... = GetRaidRosterInfo(i)
+        name = GetRaidRosterInfo(i)
         if name ~= nil then
             if SVDC.attendance[name] then
                 SVDC.attendance[name] = SVDC.attendance[name] + 1
