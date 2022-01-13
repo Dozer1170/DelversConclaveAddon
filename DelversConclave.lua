@@ -36,6 +36,7 @@ function f:ADDON_LOADED()
     if SVDC == nil then
         SVDC = {}
         SVDC.attendance = {}
+        SVDC.spellcasts = {}
     end
 end
 
@@ -66,6 +67,10 @@ SlashCmdList["dc"] = function(msg)
 
     if subcommand == "printattendance" then
         DC.printAttendance()
+    end
+
+    if subcommand == "printspellcasts" then
+        DC.printSpellCastCount()
     end
 end
 
@@ -115,12 +120,14 @@ function DC.unitSpellcastSucceeded(unit, spellName, spellId)
     local unitName = UnitName(unit)
     if spellName == "Healthstone" then
         print(unitName.." used a healthstone")
+        DC.increaseSpellCastCount(unitName, spellName)
     end
 
     local spiritualHealingPotion = 307192
     local phialOfSerenityPurifySoul = 323436
     if spellId == spiritualHealingPotion or spellId == phialOfSerenityPurifySoul then
         print(unitName.." used a healing potion")
+        DC.increaseSpellCastCount(unitName, spellName)
     end
 
     local agilityPot = 307159
@@ -129,12 +136,35 @@ function DC.unitSpellcastSucceeded(unit, spellName, spellId)
     local phantomFirePot = 307495
     if spellId == agilityPot or spellId == strengthPot or spellId == intPot or spellId == phantomFirePot then
         print(unitName.." used a DPS pot")
+        DC.increaseSpellCastCount(unitName, spellName)
     end
 
     local manaPot = 307193
     local spiritualClarityPot = 307161
     if spellId == manaPot or spellId == spiritualClarityPot then
         print(unitName.." used a mana pot")
+        DC.increaseSpellCastCount(unitName, spellName)
+    end
+end
+
+function DC.increaseSpellCastCount(unitName, spellName)
+    if SVDC.spellcasts[unitName] == nil then
+        SVDC.spellcasts[unitName] = {}
+    end
+    if SVDC.spellcasts[unitName][spellName] == nil then
+        SVDC.spellcasts[unitName][spellName] = 0
+    end
+
+    SVDC.spellcasts[unitName][spellName] = SVDC.spellcasts[unitName][spellName] + 1
+end
+
+function DC.printSpellCastCount()
+    for unitName, castsTable in pairs(SVDC.spellcasts) do
+        local unitSpellcastStr = unitName..": "
+        for spellName, count in pairs(castsTable) do
+            unitSpellcastStr = unitSpellcastStr..spellName.."["..count.."] "
+        end
+        print(unitSpellcastStr)
     end
 end
 
