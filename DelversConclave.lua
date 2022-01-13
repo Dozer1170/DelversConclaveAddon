@@ -12,9 +12,8 @@ local INSPECT_READY = "INSPECT_READY"
 
 -------------------------------- Globals ----------------------------------------
 
-local SVDC = nil -- Saved variable for saving attendance etc to disk
+local SVDC -- Saved variable for saving attendance etc to disk
 local DC = {}
-local inspectUnit = nil
 
 ----------------------------- Event Registration --------------------------------
 
@@ -29,31 +28,8 @@ function f:UNIT_INVENTORY_CHANGED(unit)
     DC.inventoryUpdated(unit)
 end
 
-function f:UNIT_SPELLCAST_SUCCEEDED(unit, spellName, spellRank, spellLineIdCounter, spellId)
-    local unitName = UnitName(unit)
-    if spellName == "Healthstone" then
-        print(unitName.." used a healthstone")
-    end
-
-    local spiritualHealingPotion = 307192
-    local phialOfSerenityPurifySoul = 323436
-    if spellId == spiritualHealingPotion or spellId == phialOfSerenityPurifySoul then
-        print(unitName.." used a healing potion")
-    end
-
-    local agilityPot = 307159
-    local strengthPot = 307164
-    local intPot = 307162
-    local phantomFirePot = 307495
-    if spellId == agilityPot or spellId == strengthPot or spellId == intPot or spellId == phantomFirePot then
-        print(unitName.." used a DPS pot")
-    end
-
-    local manaPot = 307193
-    local spiritualClarityPot = 307161
-    if spellId == manaPot or spellId == spiritualClarityPot then
-        print(unitName.." used a mana pot")
-    end
+function f:UNIT_SPELLCAST_SUCCEEDED(unit, spellName, _, _, spellId)
+    DC.unitSpellcastSucceeded(unit, spellName, spellId)
 end
 
 function f:ADDON_LOADED()
@@ -64,8 +40,8 @@ function f:ADDON_LOADED()
 end
 
 function f:INSPECT_READY(guid)
-    if inspectUnit and UnitGUID(inspectUnit) == guid then
-        DC.doHeroicPlayerCheckOnUnit(inspectUnit)
+    if DC.inspectUnit and UnitGUID(DC.inspectUnit) == guid then
+        DC.doHeroicPlayerCheckOnUnit(DC.inspectUnit)
     end
 end
 
@@ -81,7 +57,7 @@ SlashCmdList["dc"] = function(msg)
     local subcommand = split[1]
     if subcommand == "heroiccheck" then
         NotifyInspect("target")
-        inspectUnit = GetUnitName("target")
+        DC.inspectUnit = GetUnitName("target")
     end
 
     if subcommand == "attendance" then
@@ -133,6 +109,42 @@ function DC.printAttendance()
     end
 end
 
+--------------------------------------- Spellcasts -------------------------------------------
+
+function DC.unitSpellcastSucceeded(unit, spellName, spellId)
+    local unitName = UnitName(unit)
+    if spellName == "Healthstone" then
+        print(unitName.." used a healthstone")
+    end
+
+    local spiritualHealingPotion = 307192
+    local phialOfSerenityPurifySoul = 323436
+    if spellId == spiritualHealingPotion or spellId == phialOfSerenityPurifySoul then
+        print(unitName.." used a healing potion")
+    end
+
+    local agilityPot = 307159
+    local strengthPot = 307164
+    local intPot = 307162
+    local phantomFirePot = 307495
+    if spellId == agilityPot or spellId == strengthPot or spellId == intPot or spellId == phantomFirePot then
+        print(unitName.." used a DPS pot")
+    end
+
+    local manaPot = 307193
+    local spiritualClarityPot = 307161
+    if spellId == manaPot or spellId == spiritualClarityPot then
+        print(unitName.." used a mana pot")
+    end
+end
+
+---------------------------------- Inventory Updated -----------------------------------------
+
+function DC.inventoryUpdated(unit)
+    local unitName = UnitName(unit)
+    print(unitName.." inventory changed")
+end
+
 --------------------------------------- Utils -------------------------------------------------
 
 function DC.boolToYesNo(bool)
@@ -141,11 +153,5 @@ function DC.boolToYesNo(bool)
     else
         return "NO"
     end
-end
-
----------------------------------- Inventory Updated -----------------------------------------
-
-function DC.inventoryUpdated(unit)
-    print("Unit inventory changed: "..arg1)
 end
 
