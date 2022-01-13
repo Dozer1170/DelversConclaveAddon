@@ -79,9 +79,9 @@ end
 function DC.doHeroicPlayerCheckOnUnit(unit)
     local name = GetUnitName(unit, false)
 
-    local hasVeiledAugment = AuraUtil.AuraExists("Veiled Augment Rune", "target", nil)
-    local hasFlask = AuraUtil.AuraExists("Spectral Flask of Power", "target", nil)
-    local hasFood = AuraUtil.AuraExists("Well Fed", "target", nil)
+    local hasVeiledAugment = AuraUtil.AuraExists("Veiled Augment Rune", unit, nil)
+    local hasFlask = AuraUtil.AuraExists("Spectral Flask of Power", unit, nil)
+    local hasFood = AuraUtil.AuraExists("Well Fed", unit, nil)
 
     --local mainHandEnhanced = InventoryUtil.ItemHasEnhancement(unit, "MainHandSlot")
     local minILvlForHeroic = 226
