@@ -6,12 +6,13 @@
 -------------------------------- Constants --------------------------------------
 
 local UNIT_INVENTORY_CHANGED = "UNIT_INVENTORY_CHANGED"
+local UNIT_SPELLCAST_SUCCEEDED = "UNIT_SPELLCAST_SUCCEEDED"
 local ADDON_LOADED = "ADDON_LOADED"
 local INSPECT_READY = "INSPECT_READY"
 
 -------------------------------- Globals ----------------------------------------
 
-local SVDC = nil
+local SVDC = nil -- Saved variable for saving attendance etc to disk
 local DC = {}
 local inspectUnit = nil
 
@@ -19,19 +20,47 @@ local inspectUnit = nil
 
 local f = CreateFrame("Frame")
 f:SetScript("OnEvent", function(self, event, ...) self[event](self, ...) end)
-f:RegisterEvent(ADDON_LOADED)
 f:RegisterEvent(UNIT_INVENTORY_CHANGED)
+f:RegisterEvent(UNIT_SPELLCAST_SUCCEEDED)
+f:RegisterEvent(ADDON_LOADED)
 f:RegisterEvent(INSPECT_READY)
-
-function f:ADDON_LOADED()
-    if (SVDC == nil) then
-        SVDC = {}
-        SVDC.attendance = {}
-    end
-end
 
 function f:UNIT_INVENTORY_CHANGED(unit)
     DC.inventoryUpdated(unit)
+end
+
+function f:UNIT_SPELLCAST_SUCCEEDED(unit, spellName, spellRank, spellLineIdCounter, spellId)
+    local unitName = UnitName(unit)
+    if spellName == "Healthstone" then
+        print(unitName.." used a healthstone")
+    end
+
+    local spiritualHealingPotion = 307192
+    local phialOfSerenityPurifySoul = 323436
+    if spellId == spiritualHealingPotion or spellId == phialOfSerenityPurifySoul then
+        print(unitName.." used a healing potion")
+    end
+
+    local agilityPot = 307159
+    local strengthPot = 307164
+    local intPot = 307162
+    local phantomFirePot = 307495
+    if spellId == agilityPot or spellId == strengthPot or spellId == intPot or spellId == phantomFirePot then
+        print(unitName.." used a DPS pot")
+    end
+
+    local manaPot = 307193
+    local spiritualClarityPot = 307161
+    if spellId == manaPot or spellId == spiritualClarityPot then
+        print(unitName.." used a mana pot")
+    end
+end
+
+function f:ADDON_LOADED()
+    if SVDC == nil then
+        SVDC = {}
+        SVDC.attendance = {}
+    end
 end
 
 function f:INSPECT_READY(guid)
@@ -45,21 +74,21 @@ end
 SLASH_DC1 = "/dc"
 SlashCmdList["dc"] = function(msg)
     local split = msg.split(' ')
-    if (split.length <= 1) then
+    if split.length <= 1 then
         print("Delvers Conclave: Provide a subcommand (heroiccheck, attendance)")
     end
 
     local subcommand = split[1]
-    if (subcommand == "heroiccheck") then
+    if subcommand == "heroiccheck" then
         NotifyInspect("target")
         inspectUnit = GetUnitName("target")
     end
 
-    if (subcommand == "attendance") then
+    if subcommand == "attendance" then
         DC.doAttendanceRecording()
     end
 
-    if (subcommand == "printattendance") then
+    if subcommand == "printattendance" then
         DC.printAttendance()
     end
 end
@@ -89,7 +118,7 @@ function DC.doAttendanceRecording()
     for i = 1, 40 do
         name, ... = GetRaidRosterInfo(i)
         if name ~= nil then
-            if (SVDC.attendance[name]) then
+            if SVDC.attendance[name] then
                 SVDC.attendance[name] = SVDC.attendance[name] + 1
             else
                 SVDC.attendance[name] = 1
@@ -107,7 +136,7 @@ end
 --------------------------------------- Utils -------------------------------------------------
 
 function DC.boolToYesNo(bool)
-    if (bool) then
+    if bool then
         return "YES"
     else
         return "NO"
