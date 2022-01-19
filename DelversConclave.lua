@@ -69,7 +69,7 @@ end
 function DC.doHeroicPlayerCheckOnUnit(unit)
     local name = GetUnitName(unit, false)
 
-    local hasVeiledAugment = AuraUtils.AuraExists("Veiled Augment Rune", unit, "PLAYER|HELPFUL")
+    local hasVeiledAugment = AuraUtils.AuraExists("Veiled Augmentation", unit, "PLAYER|HELPFUL")
     local hasFlask = AuraUtils.AuraExists("Spectral Flask of Power", unit, "PLAYER|HELPFUL")
     local hasFood = AuraUtils.AuraExists("Well Fed", unit, "PLAYER|HELPFUL")
 

@@ -9,13 +9,15 @@ do
                 return name, rank, icon, count, debuffType, duration
             end
         end
-
-        print("Could not find aura on unit")
     end
 end
 
 function AuraUtils.AuraExists(auraName, unit, filter)
     name, rank, icon, count, debuffType, duration = AuraUtils.FindAuraByName(auraName, unit, filter)
+    if duration == nil then
+        print("Aura "..auraName.." does not exist on "..unit)
+        return false
+    end
 
     return duration > 0
 end
