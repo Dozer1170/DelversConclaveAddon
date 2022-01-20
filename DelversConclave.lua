@@ -68,19 +68,53 @@ end
 
 function DC.doHeroicPlayerCheckOnUnit(unit)
     local name = GetUnitName(unit, false)
+    print("Heroic Roster Check for "..name)
+    DC.checkBuffs(unit)
+    DC.checkAttendance(name)
+    DC.checkItemLevel(unit)
+end
 
+function DC.checkBuffs(unit)
+    --local mainHandEnhanced = InventoryUtil.ItemHasEnhancement(unit, "MainHandSlot")
     local hasVeiledAugment = AuraUtils.AuraExists("Veiled Augmentation", unit, "PLAYER|HELPFUL")
     local hasFlask = AuraUtils.AuraExists("Spectral Flask of Power", unit, "PLAYER|HELPFUL")
     local hasFood = AuraUtils.AuraExists("Well Fed", unit, "PLAYER|HELPFUL")
+    local hasBuffs = hasVeiledAugment and hasFlask and hasFood
+    print("Buffs: "..DC.boolToYesNo(hasBuffs))
+    if (hasBuffs == false) then
+        if (hasVeiledAugment == false) then
+            print("  Missing Veiled Augment Rune")
+        end
+        if (hasFlask == false) then
+            print("  Missing Flask")
+        end
+        if (hasFood == false) then
+            print("  Missing Food")
+        end
+    end
+end
 
-    --local mainHandEnhanced = InventoryUtil.ItemHasEnhancement(unit, "MainHandSlot")
+function DC.checkAttendance(name)
+    local requiredAttendance = 2
+    local hasEnoughAttendance = SVDC.attendance[name] ~= nil and SVDC.attendance[name] >= requiredAttendance
+    print("Attendance: "..DC.boolToYesNo(hasEnoughAttendance))
+    if (hasEnoughAttendance == false) then
+        local attendanceAmount = 0
+        if (SVDC.attendance[name] ~= nil) then
+            attendanceAmount = SVDC.attendance[name]
+        end
+        print("  Attendance Progress: "..attendanceAmount.."/"..requiredAttendance)
+    end
+end
+
+function DC.checkItemLevel(unit)
     local minILvlForHeroic = 226
     local averageItemLevel = InventoryUtil.AverageItemLevel(unit)
-
-    print("Heroic Roster Check for "..name)
-    print("Buffs: "..boolToYesNo(hasVeiledAugment and hasFlask and hasFood))
-    print("Attendance: "..boolToYesNo(SVDC.attendance[name] ~= nil and SVDC.attendance[name] > 1))
-    print("Item Level: "..boolToYesNo(averageItemLevel >= minILvlForHeroic))
+    local hasHighEnoughItemLevel = averageItemLevel >= minILvlForHeroic
+    print("Item Level: "..DC.boolToYesNo(hasHighEnoughItemLevel))
+    if (hasHighEnoughItemLevel == false) then
+        print("Average item level "..averageItemLevel.."/"..minILvlForHeroic)
+    end
 end
 
 ----------------------------------- Attendance -----------------------------------------------
@@ -99,6 +133,7 @@ function DC.doAttendanceRecording()
 end
 
 function DC.printAttendance()
+    print("Attendance")
     for name, numAttendance in pairs(SVDC.attendance) do
         print(name..": "..numAttendance)
     end
@@ -162,7 +197,6 @@ end
 
 function DC.inventoryUpdated(unit)
     local unitName = UnitName(unit)
-    print(unitName.." inventory changed")
 end
 
 --------------------------------------- Utils -------------------------------------------------
