@@ -1,7 +1,7 @@
-## Interface: 11304
+## Interface: 90105
 ## Version: 1
 ## Author: Gartetasa
-## Notes: Audits your raid members to make sure they have full gems/enchants/raid buffs
+## Notes: Guild roster utilities for Delvers Conclave
 ## SavedVariables: SVDC
 
 AuraUtils.lua

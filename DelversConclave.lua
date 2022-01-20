@@ -10,9 +10,8 @@ local UNIT_SPELLCAST_SUCCEEDED = "UNIT_SPELLCAST_SUCCEEDED"
 local ADDON_LOADED = "ADDON_LOADED"
 local INSPECT_READY = "INSPECT_READY"
 
--------------------------------- Globals ----------------------------------------
+-------------------------------- Variables ----------------------------------------
 
-local SVDC -- Saved variable for saving attendance etc to disk
 local DC = {}
 
 ----------------------------- Event Registration --------------------------------
@@ -28,8 +27,10 @@ function f:UNIT_INVENTORY_CHANGED(unit)
     DC.inventoryUpdated(unit)
 end
 
-function f:UNIT_SPELLCAST_SUCCEEDED(unit, spellName, _, _, spellId)
-    DC.unitSpellcastSucceeded(unit, spellName, spellId)
+function f:UNIT_SPELLCAST_SUCCEEDED(unit, castGuid, spellId)
+    local unitName = GetUnitName(unit, false)
+    print(unitName.." spellcast "..castGuid.." succeeded, id: "..(spellId or "nil"))
+    DC.unitSpellcastSucceeded(unit, spellId)
 end
 
 function f:ADDON_LOADED()
@@ -54,11 +55,17 @@ SlashCmdList["DC"] = function(msg)
         NotifyInspect("target")
         DC.inspectUnit = GetUnitName("target")
     elseif msg == "attendance" then
+        print("-------------------------------------")
         DC.doAttendanceRecording()
+        print("-------------------------------------")
     elseif msg == "printattendance" then
+        print("-------------------------------------")
         DC.printAttendance()
+        print("-------------------------------------")
     elseif msg == "printspellcasts" then
+        print("-------------------------------------")
         DC.printSpellCastCount()
+        print("-------------------------------------")
     else
         print("Provide an argument /dc heroiccheck|attendance|printattendance|printspellcasts")
     end
@@ -67,11 +74,13 @@ end
 ---------------------------------- Heroic Check ----------------------------------------------
 
 function DC.doHeroicPlayerCheckOnUnit(unit)
+    print("-------------------------------------")
     local name = GetUnitName(unit, false)
     print("Heroic Roster Check for "..name)
     DC.checkBuffs(unit)
     DC.checkAttendance(name)
     DC.checkItemLevel(unit)
+    print("-------------------------------------")
 end
 
 function DC.checkBuffs(unit)
@@ -120,14 +129,16 @@ end
 ----------------------------------- Attendance -----------------------------------------------
 
 function DC.doAttendanceRecording()
+    print("Recording attendance...")
     for i = 1, 40 do
-        name = GetRaidRosterInfo(i)
+        name, _, _, _, _, _, _, _, _, _, _ = GetRaidRosterInfo(i)
         if name ~= nil then
             if SVDC.attendance[name] then
                 SVDC.attendance[name] = SVDC.attendance[name] + 1
             else
                 SVDC.attendance[name] = 1
             end
+            print(name..": "..SVDC.attendance[name])
         end
     end
 end
@@ -141,18 +152,20 @@ end
 
 --------------------------------------- Spellcasts -------------------------------------------
 
-function DC.unitSpellcastSucceeded(unit, spellName, spellId)
+function DC.unitSpellcastSucceeded(unit, spellId)
     local unitName = UnitName(unit)
-    if spellName == "Healthstone" then
+
+    local healthstone = 6262
+    if spellId == healthstone  then
         print(unitName.." used a healthstone")
-        DC.increaseSpellCastCount(unitName, spellName)
+        DC.increaseSpellCastCount(unitName, "Healthstone")
     end
 
     local spiritualHealingPotion = 307192
     local phialOfSerenityPurifySoul = 323436
     if spellId == spiritualHealingPotion or spellId == phialOfSerenityPurifySoul then
         print(unitName.." used a healing potion")
-        DC.increaseSpellCastCount(unitName, spellName)
+        DC.increaseSpellCastCount(unitName, "Healing Potion")
     end
 
     local agilityPot = 307159
@@ -161,14 +174,14 @@ function DC.unitSpellcastSucceeded(unit, spellName, spellId)
     local phantomFirePot = 307495
     if spellId == agilityPot or spellId == strengthPot or spellId == intPot or spellId == phantomFirePot then
         print(unitName.." used a DPS pot")
-        DC.increaseSpellCastCount(unitName, spellName)
+        DC.increaseSpellCastCount(unitName, "DPS Pot")
     end
 
     local manaPot = 307193
     local spiritualClarityPot = 307161
     if spellId == manaPot or spellId == spiritualClarityPot then
         print(unitName.." used a mana pot")
-        DC.increaseSpellCastCount(unitName, spellName)
+        DC.increaseSpellCastCount(unitName, "Mana Pot")
     end
 end
 
@@ -184,6 +197,7 @@ function DC.increaseSpellCastCount(unitName, spellName)
 end
 
 function DC.printSpellCastCount()
+    print("Spellcasts")
     for unitName, castsTable in pairs(SVDC.spellcasts) do
         local unitSpellcastStr = unitName..": "
         for spellName, count in pairs(castsTable) do
