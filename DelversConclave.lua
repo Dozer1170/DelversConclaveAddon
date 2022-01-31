@@ -60,6 +60,10 @@ SlashCmdList["DC"] = function(msg)
         print("-------------------------------------")
         DC.printAttendance()
         print("-------------------------------------")
+    elseif msg == "clearspellcasts" then
+        print("-------------------------------------")
+        DC.clearSpellcasts()
+        print("-------------------------------------")
     elseif msg == "printspellcasts" then
         print("-------------------------------------")
         DC.printSpellCastCount()
@@ -211,13 +215,23 @@ end
 
 function DC.printSpellCastCount()
     print("Spellcasts")
-    for unitName, castsTable in pairs(SVDC.spellcasts) do
+    local sortedArray = {}
+    for n in pairs(SVDC.spellcasts) do table.insert(sortedArray, n) end
+    table.sort(sortedArray)
+
+    for i, unitName in ipairs(sortedArray) do
         local unitSpellcastStr = unitName..": "
+        local castsTable = SVDC.spellcasts[unitName]
         for spellName, count in pairs(castsTable) do
             unitSpellcastStr = unitSpellcastStr..spellName.."["..count.."] "
         end
         print(unitSpellcastStr)
     end
+end
+
+function DC.clearSpellcasts()
+    print "Clearing spellcasts"
+    SVDC.spellcasts = {}
 end
 
 ---------------------------------- Inventory Updated -----------------------------------------
