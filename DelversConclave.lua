@@ -27,9 +27,7 @@ function f:UNIT_INVENTORY_CHANGED(unit)
     DC.inventoryUpdated(unit)
 end
 
-function f:UNIT_SPELLCAST_SUCCEEDED(unit, castGuid, spellId)
-    local unitName = GetUnitName(unit, false)
-    print(unitName.." spellcast "..castGuid.." succeeded, id: "..(spellId or "nil"))
+function f:UNIT_SPELLCAST_SUCCEEDED(unit, _, spellId)
     DC.unitSpellcastSucceeded(unit, spellId)
 end
 
@@ -152,11 +150,26 @@ end
 
 --------------------------------------- Spellcasts -------------------------------------------
 
+DC.lastSpellcastUnitName = ""
+DC.lastSpellcastSpellId = 0
+
 function DC.unitSpellcastSucceeded(unit, spellId)
+    guildName, _, _ = GetGuildInfo(unit);
+    if guildName ~= "Delvers Conclave" then
+        return
+    end
+
     local unitName = UnitName(unit)
+    -- Prevent duplicate entries, sometimes the same spell triggers this method twice
+    if DC.lastSpellcastUnitName == unitName and DC.lastSpellcastSpellId == spellId then
+        return
+    else
+        DC.lastSpellcastUnitName = unitName
+        DC.lastSpellcastSpellId = spellId
+    end
 
     local healthstone = 6262
-    if spellId == healthstone  then
+    if spellId == healthstone then
         print(unitName.." used a healthstone")
         DC.increaseSpellCastCount(unitName, "Healthstone")
     end
