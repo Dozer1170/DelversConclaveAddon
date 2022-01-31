@@ -147,7 +147,12 @@ end
 
 function DC.printAttendance()
     print("Attendance")
-    for name, numAttendance in pairs(SVDC.attendance) do
+    local sortedArray = {}
+    for n in pairs(SVDC.attendance) do table.insert(sortedArray, n) end
+    table.sort(sortedArray)
+
+    for i, name in ipairs(sortedArray) do
+        local numAttendance = SVDC.attendance[name]
         print(name..": "..numAttendance)
     end
 end
